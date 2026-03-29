@@ -27,8 +27,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/api/**").permitAll()
-                        .requestMatchers("/api/secure/api/**").authenticated()
+                        .requestMatchers("/secure/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new SimpleTokenAuthFilter(apiToken), UsernamePasswordAuthenticationFilter.class);

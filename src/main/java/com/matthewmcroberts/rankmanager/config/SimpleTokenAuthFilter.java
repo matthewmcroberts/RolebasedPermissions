@@ -11,7 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-// REQUIRED HEADER: X-API-KEY: <token>
+// REQUIRED HEADER: RANKS-API-KEY: <token>
 public class SimpleTokenAuthFilter extends OncePerRequestFilter {
 
     private final String expectedToken;
@@ -27,7 +27,7 @@ public class SimpleTokenAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String token = request.getHeader("X-API-KEY");
+        String token = request.getHeader("RANKS-API-KEY");
 
         if (token != null && token.equals(expectedToken)) {
             AbstractAuthenticationToken auth =
