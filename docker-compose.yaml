@@ -1,12 +1,15 @@
 version: '2.3'
+
 services:
   ####################
   ###   MongoDB
   ####################
   mongo:
     image: bitnami/mongodb:latest
+    container_name: rankmanager-mongo
     environment:
       - MONGODB_ROOT_USER=user
       - MONGODB_ROOT_PASSWORD=password
     ports:
       - "27017:27017"
+    restart: unless-stopped

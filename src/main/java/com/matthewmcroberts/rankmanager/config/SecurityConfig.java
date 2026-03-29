@@ -17,19 +17,18 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    // Read token from environment variable
-    @Value("${RANKMANAGER_API_TOKEN}")
+    @Value("${RANKS_API_TOKEN}")
     private String apiToken;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/api/secure/**").authenticated()
+                        .requestMatchers("/api/public/api/**").permitAll()
+                        .requestMatchers("/api/secure/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new SimpleTokenAuthFilter(apiToken), UsernamePasswordAuthenticationFilter.class);

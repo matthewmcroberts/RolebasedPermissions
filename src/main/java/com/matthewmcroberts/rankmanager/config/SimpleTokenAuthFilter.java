@@ -30,7 +30,6 @@ public class SimpleTokenAuthFilter extends OncePerRequestFilter {
         String token = request.getHeader("X-API-KEY");
 
         if (token != null && token.equals(expectedToken)) {
-            // Mark user as authenticated with a simple role
             AbstractAuthenticationToken auth =
                     new AbstractAuthenticationToken(
                             AuthorityUtils.createAuthorityList("ROLE_USER")) {
