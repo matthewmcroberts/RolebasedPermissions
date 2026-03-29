@@ -11,7 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-// Checks for header: X-API-KEY: <token>
+// REQUIRED HEADER: X-API-KEY: <token>
 public class SimpleTokenAuthFilter extends OncePerRequestFilter {
 
     private final String expectedToken;

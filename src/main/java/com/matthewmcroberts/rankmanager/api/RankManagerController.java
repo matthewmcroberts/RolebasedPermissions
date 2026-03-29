@@ -3,6 +3,7 @@ package com.matthewmcroberts.rankmanager.api;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+// REQUIRED HEADER: X-API-KEY: <token>
 @RestController
 public class RankManagerController {
 
