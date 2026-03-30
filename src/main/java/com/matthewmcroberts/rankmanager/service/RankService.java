@@ -28,7 +28,7 @@ public class RankService {
     private final RankRepository rankRepository;
     private final PlayerRankAssignmentRepository playerRankAssignmentRepository;
 
-    // Map a RankObject from the repository to the Rank DTO
+    // Map a RankObject to the Rank DTO
     private Rank convertToCommonRank(final RankObject rank) {
         return Rank.builder()
                 .id(rank.getRankId())

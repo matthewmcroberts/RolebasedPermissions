@@ -18,15 +18,11 @@ public class RankRestMapperImpl implements RankRestMapper {
 
     @Override
     public Rank toDto(Rank rank) {
-        // For now, the service Rank and REST Rank are the same structure,
-        // so we can return it directly. Change this if you introduce
-        // separate domain vs API models.
         return rank;
     }
 
     @Override
     public PlayerRankAssignment toAssignmentDto(PlayerRankAssignment assignment) {
-        // Same rationale as above: treat this as an identity mapping for now.
         return assignment;
     }
 }
