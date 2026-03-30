@@ -8,7 +8,6 @@ import com.matthewmcroberts.rankmanager.dto.PlayerRankAssignment;
 import com.matthewmcroberts.rankmanager.dto.PriorityUpdate;
 import com.matthewmcroberts.rankmanager.dto.Rank;
 import com.matthewmcroberts.rankmanager.dto.RankAssignment;
-import com.matthewmcroberts.rankmanager.dto.mapper.RankRestMapper;
 import com.matthewmcroberts.rankmanager.service.RankService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,39 +20,36 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RankManagerController {
     private final RankService rankService;
-    private final RankRestMapper rankRestMapper;
 
     /** POST /secure/api/ranks */
     @PostMapping("/ranks")
     @ResponseStatus(HttpStatus.CREATED)
     public Rank createRank(@RequestBody NewRank body) {
-        return rankRestMapper.toDto(rankService.createRank(
+        return rankService.createRank(
                 body.getRankId(),
                 body.getDisplayName(),
                 body.getPriority(),
                 body.getOwnPermissions(),
                 body.getEffectivePermissions(),
-                body.getInheritedRankIds()));
+                body.getInheritedRankIds());
     }
 
     /** GET /secure/api/ranks/{id} */
     @GetMapping("/ranks/{id}")
     public Rank getRankById(@PathVariable String id) {
-        return rankRestMapper.toDto(rankService.getRankById(id));
+        return rankService.getRankById(id);
     }
 
     /** GET /secure/api/ranks/by-name/{name} */
     @GetMapping("/ranks/by-name/{name}")
     public Rank getRankByName(@PathVariable String name) {
-        return rankRestMapper.toDto(rankService.getRankByName(name));
+        return rankService.getRankByName(name);
     }
 
     /** GET /secure/api/ranks */
     @GetMapping("/ranks")
     public List<Rank> getAllRanks() {
-        return rankService.getAllRanks().stream()
-                .map(rankRestMapper::toDto)
-                .toList();
+        return rankService.getAllRanks();
     }
 
     /** PATCH /secure/api/ranks/{id}/display-name */
@@ -61,9 +57,7 @@ public class RankManagerController {
     public Rank updateDisplayName(
             @PathVariable String id,
             @RequestBody DisplayNameUpdate body) {
-
-        return rankRestMapper.toDto(
-                rankService.updateRankDisplayName(id, body.getDisplayName()));
+        return rankService.updateRankDisplayName(id, body.getDisplayName());
     }
 
     /** PATCH /secure/api/ranks/{id}/priority */
@@ -71,9 +65,7 @@ public class RankManagerController {
     public Rank updatePriority(
             @PathVariable String id,
             @RequestBody PriorityUpdate body) {
-
-        return rankRestMapper.toDto(
-                rankService.updateRankPriority(id, body.getPriority()));
+        return rankService.updateRankPriority(id, body.getPriority());
     }
 
     /** POST /secure/api/ranks/{id}/permissions */
@@ -81,9 +73,7 @@ public class RankManagerController {
     public Rank addPermissions(
             @PathVariable String id,
             @RequestBody PermissionsUpdate body) {
-
-        return rankRestMapper.toDto(
-                rankService.addRankPermissions(id, body.getPermissions()));
+        return rankService.addRankPermissions(id, body.getPermissions());
     }
 
     /** DELETE /secure/api/ranks/{id}/permissions */
@@ -91,9 +81,7 @@ public class RankManagerController {
     public Rank removePermissions(
             @PathVariable String id,
             @RequestBody PermissionsUpdate body) {
-
-        return rankRestMapper.toDto(
-                rankService.removeRankPermissions(id, body.getPermissions()));
+        return rankService.removeRankPermissions(id, body.getPermissions());
     }
 
     /** POST /secure/api/ranks/{id}/inherited-ranks */
@@ -101,9 +89,7 @@ public class RankManagerController {
     public Rank addInheritance(
             @PathVariable String id,
             @RequestBody InheritanceUpdate body) {
-
-        return rankRestMapper.toDto(
-                rankService.addRankInheritance(id, body.getInheritedRankIds()));
+        return rankService.addRankInheritance(id, body.getInheritedRankIds());
     }
 
     /** DELETE /secure/api/ranks/{id}/inherited-ranks */
@@ -111,9 +97,7 @@ public class RankManagerController {
     public Rank removeInheritance(
             @PathVariable String id,
             @RequestBody InheritanceUpdate body) {
-
-        return rankRestMapper.toDto(
-                rankService.removeRankInheritance(id, body.getInheritedRankIds()));
+        return rankService.removeRankInheritance(id, body.getInheritedRankIds());
     }
 
     /** DELETE /secure/api/ranks/{id} */
@@ -126,9 +110,7 @@ public class RankManagerController {
     /** GET /secure/api/ranks/{rankId}/players */
     @GetMapping("/ranks/{rankId}/players")
     public List<PlayerRankAssignment> getPlayersWithRank(@PathVariable String rankId) {
-        return rankService.getPlayerRankAssignmentsWithRank(rankId).stream()
-                .map(rankRestMapper::toAssignmentDto)
-                .toList();
+        return rankService.getPlayerRankAssignmentsWithRank(rankId);
     }
 
     /** POST /secure/api/players/{playerId}/rank */
@@ -138,19 +120,17 @@ public class RankManagerController {
             @PathVariable String playerId,
             @RequestBody RankAssignment body) {
 
-        return rankRestMapper.toAssignmentDto(rankService.assignPlayerRank(
+        return rankService.assignPlayerRank(
                 playerId,
                 body.getAssignedById(),
-                body.getRankId()));
+                body.getRankId());
     }
 
     /** GET /secure/api/players/{playerId}/rank-assignments */
     @GetMapping("/players/{playerId}/rank-assignments")
     public List<PlayerRankAssignment> getPlayerRankAssignments(
             @PathVariable String playerId) {
-        return rankService.getPlayerRankAssignments(playerId).stream()
-                .map(rankRestMapper::toAssignmentDto)
-                .toList();
+        return rankService.getPlayerRankAssignments(playerId);
     }
 
     /** DELETE /secure/api/players/{playerId}/rank */
@@ -164,8 +144,6 @@ public class RankManagerController {
     @GetMapping("/players/{playerId}/ranks")
     public List<Rank> getPlayerRanks(
             @PathVariable String playerId) {
-        return rankService.getPlayerRanks(playerId).stream()
-                .map(rankRestMapper::toDto)
-                .toList();
+        return rankService.getPlayerRanks(playerId);
     }
 }
