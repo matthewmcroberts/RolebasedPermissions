@@ -1,4 +1,4 @@
-package com.matthewmcroberts.rankmanager.config;
+package com.matthewmcroberts.rankmanager.config.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -3,6 +3,14 @@ package com.matthewmcroberts.rankmanager.service;
 import com.matthewmcroberts.rankmanager.RankCommon;
 import com.matthewmcroberts.rankmanager.dto.PlayerRankAssignment;
 import com.matthewmcroberts.rankmanager.dto.Rank;
+import com.matthewmcroberts.rankmanager.events.EventPublisher;
+import com.matthewmcroberts.rankmanager.events.PlayerRankAssignEvent;
+import com.matthewmcroberts.rankmanager.events.PlayerRankRemoveEvent;
+import com.matthewmcroberts.rankmanager.events.RankCreateEvent;
+import com.matthewmcroberts.rankmanager.events.RankDeleteEvent;
+import com.matthewmcroberts.rankmanager.events.RankInheritanceUpdateEvent;
+import com.matthewmcroberts.rankmanager.events.RankPermissionUpdateEvent;
+import com.matthewmcroberts.rankmanager.events.RankUpdateEvent;
 import com.matthewmcroberts.rankmanager.exception.RankCreateException;
 import com.matthewmcroberts.rankmanager.exception.RankIdNotFoundException;
 import com.matthewmcroberts.rankmanager.exception.RankNotAssignedException;
@@ -27,6 +35,8 @@ import java.util.stream.Collectors;
 public class RankService {
     private final RankRepository rankRepository;
     private final PlayerRankAssignmentRepository playerRankAssignmentRepository;
+
+    private final EventPublisher  eventPublisher;
 
     // Map a RankObject to the Rank DTO
     private Rank convertToCommonRank(final RankObject rank) {
@@ -82,7 +92,13 @@ public class RankService {
                 .findByRankId(rankId)
                 .orElse(saved);
 
-        return this.convertToCommonRank(reloaded);
+        final Rank commonRank = convertToCommonRank(reloaded);
+
+        eventPublisher.publishRankCreate(RankCreateEvent.builder()
+                        .rank(commonRank)
+                        .build());
+
+        return commonRank;
     }
 
     public Rank getRankById(final String rankId) {
@@ -112,7 +128,15 @@ public class RankService {
         }
 
         final RankObject saved = this.rankRepository.updateRankDisplayName(rank.getRankId(), newDisplayName);
-        return this.convertToCommonRank(saved);
+
+        final Rank commonRank = convertToCommonRank(saved);
+
+        eventPublisher.publishRankUpdate(RankUpdateEvent.builder()
+                        .rank(commonRank)
+                        .reason(RankUpdateEvent.Reason.UPDATE_DISPLAY_NAME)
+                .build());
+
+        return commonRank;
     }
 
     public Rank updateRankPriority(final String rankId, final int newPriority) {
@@ -123,46 +147,109 @@ public class RankService {
         }
 
         final RankObject saved = this.rankRepository.updateRankPriority(rank.getRankId(), newPriority);
-        return this.convertToCommonRank(saved);
+
+        final Rank commonRank = convertToCommonRank(saved);
+
+        eventPublisher.publishRankUpdate(RankUpdateEvent.builder()
+                .rank(commonRank)
+                .reason(RankUpdateEvent.Reason.UPDATE_PRIORITY)
+                .build());
+
+        return commonRank;
     }
 
     public Rank addRankPermissions(final String rankId, final Set<String> newPermissions) {
         final RankObject rank = this.findRankObjectByIdOrThrow(rankId);
         final RankObject saved = this.rankRepository.addRankPermissions(rank.getRankId(), newPermissions);
-        return this.convertToCommonRank(saved);
+
+        final Rank commonRank = convertToCommonRank(saved);
+
+        eventPublisher.publishRankPermissionUpdate(RankPermissionUpdateEvent.builder()
+                        .updatedRank(commonRank)
+                        .updatedAffectedRanks(this.getRanksInheritingRank(rankId))
+                        .reason(RankPermissionUpdateEvent.Reason.ADD_PERMISSION)
+                .build());
+
+        return commonRank;
     }
 
     public Rank removeRankPermissions(final String rankId, final Set<String> permissionsToRemove) {
         final RankObject rank = this.findRankObjectByIdOrThrow(rankId);
         final RankObject saved =
                 this.rankRepository.removeRankPermissions(rank.getRankId(), permissionsToRemove);
-        return this.convertToCommonRank(saved);
+
+        final Rank commonRank = convertToCommonRank(saved);
+
+        eventPublisher.publishRankPermissionUpdate(RankPermissionUpdateEvent.builder()
+                .updatedRank(commonRank)
+                .updatedAffectedRanks(this.getRanksInheritingRank(rankId))
+                .reason(RankPermissionUpdateEvent.Reason.REMOVE_PERMISSION)
+                .build());
+
+        return commonRank;
     }
 
     public Rank addRankInheritance(final String rankId, final Set<String> inheritedRankIds) {
         final RankObject rank = this.findRankObjectByIdOrThrow(rankId);
         final RankObject saved =
                 this.rankRepository.addRankInheritedRankIds(rank.getRankId(), inheritedRankIds);
-        return this.convertToCommonRank(saved);
+
+        final Rank commonRank = convertToCommonRank(saved);
+
+        eventPublisher.publishRankInheritanceUpdate(RankInheritanceUpdateEvent.builder()
+                        .updatedRank(commonRank)
+                        .updatedAffectedRanks(this.getRanksInheritingRank(rankId))
+                        .reason(RankInheritanceUpdateEvent.Reason.ADD_INHERITANCE)
+                .build());
+
+        return commonRank;
     }
 
     public Rank removeRankInheritance(final String rankId, final Set<String> inheritedRankIds) {
         final RankObject rank = this.findRankObjectByIdOrThrow(rankId);
         final RankObject saved =
                 this.rankRepository.removeRankInheritedRankIds(rank.getRankId(), inheritedRankIds);
-        return this.convertToCommonRank(saved);
+
+        final Rank commonRank = convertToCommonRank(saved);
+
+        eventPublisher.publishRankInheritanceUpdate(RankInheritanceUpdateEvent.builder()
+                .updatedRank(commonRank)
+                .updatedAffectedRanks(this.getRanksInheritingRank(rankId))
+                .reason(RankInheritanceUpdateEvent.Reason.REMOVE_INHERITANCE)
+                .build());
+
+        return commonRank;
     }
 
     public boolean deleteRank(final String rankId) {
+        final List<Rank> affectedRanks =
+                this.getRanksInheritingRank(rankId);
+
         // Clear rank assignments for players with this rank
-        this.playerRankAssignmentRepository.removePlayerRankAssignments(rankId);
+        this.playerRankAssignmentRepository
+                .removePlayerRankAssignments(rankId);
 
         // Remove inheritance from other ranks
-        this.rankRepository.removeInheritedRankIdFromRanksByQuery(rankId);
+        this.rankRepository
+                .removeInheritedRankIdFromRanksByQuery(rankId);
 
         // Delete the actual rank
-        final RankObject deletedRankObject = this.rankRepository.deleteRank(rankId);
-        return deletedRankObject != null;
+        final RankObject deletedRankObject =
+                this.rankRepository.deleteRank(rankId);
+
+        if (deletedRankObject != null) {
+            final Rank deletedRank = convertToCommonRank(deletedRankObject);
+
+            eventPublisher.publishRankDelete(
+                    RankDeleteEvent.builder()
+                            .deletedRank(deletedRank)
+                            .updatedAffectedRanks(affectedRanks)
+                            .build());
+
+            return true;
+        }
+
+        return false;
     }
 
     public PlayerRankAssignment assignPlayerRank(
@@ -171,7 +258,14 @@ public class RankService {
         final PlayerRankAssignmentObject rankAssignment = this.playerRankAssignmentRepository.setPlayerRankAssignment(
                 playerId, rank, assignedById, Instant.now());
         final Rank dtoRank = this.getRankById(rankAssignment.getRankId());
-        return this.convertToCommonAssignment(rankAssignment, dtoRank);
+
+        final PlayerRankAssignment commonPlayerRankAssignment = this.convertToCommonAssignment(rankAssignment, dtoRank);
+
+        eventPublisher.publishPlayerRankAssign(PlayerRankAssignEvent.builder()
+                .playerRankAssignment(commonPlayerRankAssignment)
+                .build());
+
+        return commonPlayerRankAssignment;
     }
 
     public List<PlayerRankAssignment> getPlayerRankAssignments(final String playerId) {
@@ -209,9 +303,23 @@ public class RankService {
         final PlayerRankAssignmentObject rankAssignmentObject =
                 this.findPlayerRankAssignmentObjectOrThrow(playerId);
 
-        // Drop the assignment
-        return this.playerRankAssignmentRepository.removePlayerRankAssignment(
-                rankAssignmentObject.getPlayerId());
+        final Rank commonRank = this.getRankById(rankAssignmentObject.getRankId());
+        final PlayerRankAssignment commonPlayerRankAssignment = this.convertToCommonAssignment(rankAssignmentObject, commonRank);
+
+        final boolean removed =
+                this.playerRankAssignmentRepository.removePlayerRankAssignment(
+                        rankAssignmentObject.getPlayerId()
+                );
+
+        if (removed) {
+            eventPublisher.publishPlayerRankRemove(
+                    PlayerRankRemoveEvent.builder()
+                            .playerRankAssignment(commonPlayerRankAssignment)
+                            .build()
+            );
+        }
+
+        return removed;
     }
 
     public List<Rank> getRanksByIds(final Set<String> rankIds) {

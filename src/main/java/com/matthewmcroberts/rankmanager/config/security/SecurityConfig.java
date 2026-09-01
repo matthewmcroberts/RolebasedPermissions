@@ -1,4 +1,4 @@
-package com.matthewmcroberts.rankmanager.config;
+package com.matthewmcroberts.rankmanager.config.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
