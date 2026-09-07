@@ -1,6 +1,5 @@
 package com.matthewmcroberts.rankmanager.repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,10 +13,4 @@ public interface PlayerRankAssignmentRepository
     List<PlayerRankAssignmentObject> findAllByRankId(String rankId);
 
     Optional<PlayerRankAssignmentObject> findByPlayerId(String playerId);
-
-    List<PlayerRankAssignmentObject> findAllByPlayerId(
-            String playerId);
-
-    List<PlayerRankAssignmentObject> findAllByPlayerIdIn(
-            Collection<String> playerIds);
 }

@@ -5,7 +5,7 @@ import java.time.Instant;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
@@ -16,7 +16,9 @@ public class PlayerRankAssignmentObject {
     @MongoId
     String id;
 
-    @NonNull String playerId;
+    @NonNull
+    @Indexed(unique = true)
+    String playerId;
 
     @NonNull String rankId;
 

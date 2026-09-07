@@ -8,6 +8,7 @@ import com.matthewmcroberts.rankmanager.dto.PlayerRankAssignment;
 import com.matthewmcroberts.rankmanager.dto.PriorityUpdate;
 import com.matthewmcroberts.rankmanager.dto.Rank;
 import com.matthewmcroberts.rankmanager.dto.RankAssignment;
+import com.matthewmcroberts.rankmanager.exception.RankNotAssignedException;
 import com.matthewmcroberts.rankmanager.service.RankService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -126,11 +127,12 @@ public class RankManagerController {
                 body.getRankId());
     }
 
-    /** GET /secure/api/players/{playerId}/rank-assignments */
-    @GetMapping("/players/{playerId}/rank-assignments")
-    public List<PlayerRankAssignment> getPlayerRankAssignments(
+    /** GET /secure/api/players/{playerId}/rank-assignment */
+    @GetMapping("/players/{playerId}/rank-assignment")
+    public PlayerRankAssignment getPlayerRankAssignment(
             @PathVariable String playerId) {
-        return rankService.getPlayerRankAssignments(playerId);
+        return rankService.getPlayerRankAssignment(playerId)
+                .orElseThrow(() -> new RankNotAssignedException(playerId));
     }
 
     /** DELETE /secure/api/players/{playerId}/rank */
@@ -138,12 +140,5 @@ public class RankManagerController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removePlayerRank(@PathVariable String playerId) {
         rankService.removePlayerRank(playerId);
-    }
-
-    /** GET /secure/api/players/{playerId}/ranks */
-    @GetMapping("/players/{playerId}/ranks")
-    public List<Rank> getPlayerRanks(
-            @PathVariable String playerId) {
-        return rankService.getPlayerRanks(playerId);
     }
 }

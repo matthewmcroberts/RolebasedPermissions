@@ -36,7 +36,7 @@ public class RankService {
     private final RankRepository rankRepository;
     private final PlayerRankAssignmentRepository playerRankAssignmentRepository;
 
-    private final EventPublisher  eventPublisher;
+    private final EventPublisher eventPublisher;
 
     // Map a RankObject to the Rank DTO
     private Rank convertToCommonRank(final RankObject rank) {
@@ -95,8 +95,8 @@ public class RankService {
         final Rank commonRank = convertToCommonRank(reloaded);
 
         eventPublisher.publishRankCreate(RankCreateEvent.builder()
-                        .rank(commonRank)
-                        .build());
+                .rank(commonRank)
+                .build());
 
         return commonRank;
     }
@@ -132,8 +132,8 @@ public class RankService {
         final Rank commonRank = convertToCommonRank(saved);
 
         eventPublisher.publishRankUpdate(RankUpdateEvent.builder()
-                        .rank(commonRank)
-                        .reason(RankUpdateEvent.Reason.UPDATE_DISPLAY_NAME)
+                .rank(commonRank)
+                .reason(RankUpdateEvent.Reason.UPDATE_DISPLAY_NAME)
                 .build());
 
         return commonRank;
@@ -165,9 +165,9 @@ public class RankService {
         final Rank commonRank = convertToCommonRank(saved);
 
         eventPublisher.publishRankPermissionUpdate(RankPermissionUpdateEvent.builder()
-                        .updatedRank(commonRank)
-                        .updatedAffectedRanks(this.getRanksInheritingRank(rankId))
-                        .reason(RankPermissionUpdateEvent.Reason.ADD_PERMISSION)
+                .updatedRank(commonRank)
+                .updatedAffectedRanks(this.getRanksInheritingRank(rankId))
+                .reason(RankPermissionUpdateEvent.Reason.ADD_PERMISSION)
                 .build());
 
         return commonRank;
@@ -197,9 +197,9 @@ public class RankService {
         final Rank commonRank = convertToCommonRank(saved);
 
         eventPublisher.publishRankInheritanceUpdate(RankInheritanceUpdateEvent.builder()
-                        .updatedRank(commonRank)
-                        .updatedAffectedRanks(this.getRanksInheritingRank(rankId))
-                        .reason(RankInheritanceUpdateEvent.Reason.ADD_INHERITANCE)
+                .updatedRank(commonRank)
+                .updatedAffectedRanks(this.getRanksInheritingRank(rankId))
+                .reason(RankInheritanceUpdateEvent.Reason.ADD_INHERITANCE)
                 .build());
 
         return commonRank;
@@ -268,25 +268,12 @@ public class RankService {
         return commonPlayerRankAssignment;
     }
 
-    public List<PlayerRankAssignment> getPlayerRankAssignments(final String playerId) {
-        return this.playerRankAssignmentRepository.findAllByPlayerId(playerId).stream()
-                .map(playerRankAssignmentObject -> {
-                    Rank dtoRank = this.getRankById(playerRankAssignmentObject.getRankId());
-                    return this.convertToCommonAssignment(playerRankAssignmentObject, dtoRank);
-                })
-                .filter(Objects::nonNull)
-                .toList();
-    }
-
-    public List<Rank> getPlayerRanks(final String playerId) {
-        return this.playerRankAssignmentRepository.findAllByPlayerId(playerId).stream()
-                .map(playerRankAssignmentObject -> {
-                    RankObject rankObject = this.findRankObjectByIdOrThrow(
-                            playerRankAssignmentObject.getRankId());
-                    return this.convertToCommonRank(rankObject);
-                })
-                .filter(Objects::nonNull)
-                .toList();
+    public Optional<PlayerRankAssignment> getPlayerRankAssignment(String playerId) {
+        return this.playerRankAssignmentRepository.findByPlayerId(playerId)
+                .map(assignment -> {
+                    Rank rank = this.getRankById(assignment.getRankId());
+                    return this.convertToCommonAssignment(assignment, rank);
+                });
     }
 
     public List<PlayerRankAssignment> getPlayerRankAssignmentsWithRank(final String rankId) {
@@ -326,18 +313,6 @@ public class RankService {
         return this.rankRepository.findAllByRankIdIn(rankIds).stream()
                 .map(this::convertToCommonRank)
                 .collect(Collectors.toList());
-    }
-
-    public List<PlayerRankAssignment> getPlayerRankAssignmentsByIds(final Set<String> playerIds) {
-        final List<PlayerRankAssignmentObject> playerRankAssignmentObjects =
-                this.playerRankAssignmentRepository.findAllByPlayerIdIn(playerIds);
-        final List<PlayerRankAssignment> playerRankAssignments = new ArrayList<>();
-        playerRankAssignmentObjects.forEach(playerRankAssignment -> {
-            final Rank rank = this.getRankById(playerRankAssignment.getRankId());
-            playerRankAssignments.add(this.convertToCommonAssignment(playerRankAssignment, rank));
-        });
-
-        return playerRankAssignments;
     }
 
     public List<Rank> getRanksInheritingRank(final String rankId) {
