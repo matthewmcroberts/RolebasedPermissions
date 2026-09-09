@@ -16,7 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Rank {
-    private String id;
+    private String rankId;
     private String displayName;
     private int priority;
     private Set<String> ownPermissions;
