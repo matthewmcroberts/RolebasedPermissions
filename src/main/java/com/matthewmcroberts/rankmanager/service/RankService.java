@@ -41,7 +41,7 @@ public class RankService {
     // Map a RankObject to the Rank DTO
     private Rank convertToCommonRank(final RankObject rank) {
         return Rank.builder()
-                .id(rank.getRankId())
+                .rankId(rank.getRankId())
                 .displayName(rank.getDisplayName())
                 .priority(rank.getPriority())
                 .ownPermissions(rank.getOwnPermissions())
@@ -55,7 +55,7 @@ public class RankService {
             final PlayerRankAssignmentObject assignmentObject, final Rank rank) {
         return PlayerRankAssignment.builder()
                 .playerId(assignmentObject.getPlayerId())
-                .rankId(rank.getId())
+                .rankId(rank.getRankId())
                 .assignedById(assignmentObject.getAssignedById())
                 .build();
     }
