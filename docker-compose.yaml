@@ -5,7 +5,7 @@ services:
   ###   MongoDB
   ####################
   mongo:
-    image: bitnami/mongodb:latest
+    image: soldevelo/mongodb:latest
     container_name: rankmanager-mongo
     environment:
       - MONGODB_ROOT_USER=user
